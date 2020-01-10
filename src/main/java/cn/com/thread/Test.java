@@ -5,11 +5,13 @@ import com.google.common.collect.Lists;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.util.concurrent.*;
+import java.lang.Thread;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class Test {
+
+    static final String s = "asd";
 
     public static void main(String[] args) throws Exception{
 
@@ -27,16 +29,66 @@ public class Test {
         }
         System.out.println("开始时间:"+LocalDateTime.now());
         System.out.println("cpu:"+Runtime.getRuntime().availableProcessors());
-        ExecutorService executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors()*2);
+        //ExecutorService executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+
+        ExecutorService executorService =  new ThreadPoolExecutor(
+        2,
+        2,
+        0,
+        TimeUnit.MILLISECONDS,
+        new LinkedBlockingQueue<>(5),
+        //new ThreadPoolExecutor.AbortPolicy()
+        //new ThreadPoolExecutor.DiscardPolicy()
+        new ThreadPoolExecutor.DiscardOldestPolicy()
+        );
         List<Future<Double>> futures = Lists.newArrayList();
-        for(int i=0;i<part;i++){
-            AverageFurture averageFurture = new AverageFurture(list,(i+1),sep);
-            futures.add(executorService.submit(averageFurture));
+        try{
+            for(int i=0;i<part;i++){
+                AverageFurture averageFurture = new AverageFurture(list,(i+1),sep);
+                futures.add(executorService.submit(averageFurture));
+            }
+
+            System.out.println("size:"+futures.size());
+
+            for(Future<Double> doubleFuture:futures){
+                System.out.println(doubleFuture.get());
+            }
+            System.out.println("结束时间:"+LocalDateTime.now());
+        }catch (RejectedExecutionException ee){
+            ee.printStackTrace();
         }
-        for(Future<Double> doubleFuture:futures){
-            System.out.println(doubleFuture.get());
+        FutureTask futureTask =  new FutureTask<String>(new Callable<String>() {
+            @Override
+            public String call() throws Exception {
+                return "asd";
+            }
+        });
+        new Thread(futureTask).start();
+        System.out.println(futureTask.get());
+        //executorService.shutdown();
+
+        ThreadPoolExecutor tpe = (ThreadPoolExecutor)executorService;
+        while (true) {
+            System.out.println();
+            int queueSize = tpe.getQueue().size();
+            System.out.println("当前排队线程数：" + queueSize);
+
+            int activeCount = tpe.getActiveCount();
+            System.out.println("当前活动线程数：" + activeCount);
+
+            long completedTaskCount = tpe.getCompletedTaskCount();
+            System.out.println("执行完成线程数：" + completedTaskCount);
+
+            long largetestSize = tpe.getLargestPoolSize();
+            System.out.println("线程最大数目：" + largetestSize);
+            long taskCount = tpe.getTaskCount();
+            System.out.println("总线程数：" + taskCount);
+
+            Thread.sleep(10);
         }
-        executorService.shutdown();
-        System.out.println("结束时间:"+LocalDateTime.now());
+
+
+
+
     }
 }

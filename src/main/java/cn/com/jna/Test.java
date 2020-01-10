@@ -192,7 +192,7 @@ public class Test {
         return CompilerDllInvoker.Instance.RealseRec(new BSTR(tag));
     }
 
-    public static void main(String[] args) throws Exception{
+    public static void TestMain(String[] args) throws Exception{
         StringBuilder sb = new StringBuilder();
         StringBuilder sb1 = new StringBuilder();
         StringBuilder sb2 = new StringBuilder();

@@ -6,7 +6,8 @@ public class Test {
 
     public static void main(String[] args) throws Exception{
 
-        Jedis jedis = new Jedis("localhost",6379);
+        Jedis jedis = new Jedis("118.25.38.99 ",8001);
+        jedis.auth("Hh10701");
 
         //初始化
         /*
